@@ -376,3 +376,5 @@ int main(int argc, char const *argv[])
 
 执行 `sh < xargstest.sh` 的输出结果如[实验文档](https://pdos.csail.mit.edu/6.828/2024/labs/util.html)所料,有多个`$`,但是没想明白怎么改find.c。 // 留个TODO
 
+# summary
+耗时大约8小时

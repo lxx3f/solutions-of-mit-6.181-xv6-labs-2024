@@ -1,0 +1,5 @@
+1. usertrap()
+2. a7=7,代表系统调用号,在syscall.h中定义了SYS_exec=7
+3. user mode
+4. 
+5.

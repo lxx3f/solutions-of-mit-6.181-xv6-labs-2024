@@ -10,6 +10,7 @@
 #include "defs.h"
 
 void freerange(void *pa_start, void *pa_end);
+void superfreerange(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
@@ -21,13 +22,16 @@ struct run {
 struct {
   struct spinlock lock;
   struct run *freelist;
+  struct run *superfreelist;
 } kmem;
 
 void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  freerange(end, (void*)SUPERPAGESTART);
+  superfreerange((void*)SUPERPAGESTART,(void*)PHYSTOP);
+
 }
 
 void
@@ -39,6 +43,15 @@ freerange(void *pa_start, void *pa_end)
     kfree(p);
 }
 
+void
+superfreerange(void *pa_start, void *pa_end)
+{
+  char *p;
+  p = (char*)SUPERPGROUNDUP((uint64)pa_start);
+  for(;p + SUPERPGSIZE <= (char*)pa_end; p += SUPERPGSIZE)
+    superfree(p);
+}
+
 // Free the page of physical memory pointed at by pa,
 // which normally should have been returned by a
 // call to kalloc().  (The exception is when
@@ -48,7 +61,7 @@ kfree(void *pa)
 {
   struct run *r;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
+  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= SUPERPAGESTART)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
@@ -59,6 +72,26 @@ kfree(void *pa)
   acquire(&kmem.lock);
   r->next = kmem.freelist;
   kmem.freelist = r;
+  release(&kmem.lock);
+}
+
+void
+superfree(void *pa)
+{
+  // printf("call superfree\n");
+  struct run *r;
+
+  if(((uint64)pa % SUPERPGSIZE) != 0 || (uint64)pa < SUPERPAGESTART || (uint64)pa >= PHYSTOP)
+    panic("superkfree");
+
+  // Fill with junk to catch dangling refs.
+  memset(pa, 1, SUPERPGSIZE);
+
+  r = (struct run*)pa;
+
+  acquire(&kmem.lock);
+  r->next = kmem.superfreelist;
+  kmem.superfreelist = r;
   release(&kmem.lock);
 }
 
@@ -78,5 +111,22 @@ kalloc(void)
 
   if(r)
     memset((char*)r, 5, PGSIZE); // fill with junk
+  return (void*)r;
+}
+
+void *
+superalloc(void)
+{
+  // printf("call superalloc\n");
+  struct run *r;
+
+  acquire(&kmem.lock);
+  r = kmem.superfreelist;
+  if(r)
+    kmem.superfreelist = r->next;
+  release(&kmem.lock);
+
+  if(r)
+    memset((char*)r,5,SUPERPGSIZE);
   return (void*)r;
 }

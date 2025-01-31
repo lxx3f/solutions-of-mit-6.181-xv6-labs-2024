@@ -1,0 +1,30 @@
+1. Which registers contain arguments to functions? For example,
+ which register holds 13 in main's call to printf?
+
+a0,a1等通用寄存器; a2;
+
+2. Where is the call to function f in the assembly code for main?
+ Where is the call to g? (Hint: the compiler may inline functions.)
+
+main call f :"26:	45b1                	li	a1,12"
+f call g :"14:	250d                	addiw	a0,a0,3"
+都没有实际调用,编译器内联优化,用计算的返回值代替调用
+
+3. At what address is the function printf located?
+
+0x6bc
+
+4. What value is in the register ra just after the jalr to printf in main? 
+
+call.asm文件里没有jalr
+
+5. What is the output?
+
+He110 World
+大端法i=0x726c64,57616不变
+
+6. In the following code, what is going to be printed after 'y='? 
+(note: the answer is not a specific value.) Why does this happen? 
+
+一个不确定的值,因为printf会从特定寄存器读取参数,该语句缺省了一个参数,但仍然会读特定寄存器,这时
+无法确定寄存器的值.

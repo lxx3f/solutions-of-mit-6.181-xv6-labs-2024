@@ -67,8 +67,6 @@ int             get_refcount(void *);
 void            set_refcount(void *, int);
 int             page_ref_inc(void *);
 int             page_ref_dec(void *);
-void            get_page(void *);
-void            put_page(void *);
 
 // log.c
 void            initlog(int, struct superblock*);

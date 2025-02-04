@@ -134,22 +134,3 @@ page_ref_dec(void *pa) {
   release(&_refcount_lock);
   return ret;
 }
-
-// Increment the reference count of
-// the page. This is the same as page_ref_inc.
-void
-get_page(void *pa) {
-  page_ref_inc(pa);
-}
-
-// Decrement the reference count of
-// the page. If the reference count
-// falls to 0, free the page.
-void
-put_page(void *pa) {
-  if (get_refcount(pa) == 1) {
-    kfree(pa);
-  } else {
-    page_ref_dec(pa);
-  }
-}

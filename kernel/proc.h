@@ -104,4 +104,17 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  struct vma* vma;             // Virtual memory areas (for mmap)
+};
+
+// the vma address growth downward, so start < end
+struct vma {
+  uint64 start;                // virtual memory area start address
+  uint64 end;                  // virtual memory area end address
+  int prot;                    // permissions
+  int flags;                   // 
+  struct file *f;
+  uint64 offset;
+  struct vma *next;
 };

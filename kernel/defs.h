@@ -13,6 +13,9 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -37,6 +40,7 @@ void            fileinit(void);
 int             fileread(struct file*, uint64, int n);
 int             filestat(struct file*, uint64 addr);
 int             filewrite(struct file*, uint64, int n);
+int             writeback(struct file*, uint64, uint64, int);
 
 // fs.c
 void            fsinit(int);
@@ -110,6 +114,8 @@ void            yield(void);
 int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
+struct vma*     allocvma(void);
+void            freevma(struct vma*);
 
 // swtch.S
 void            swtch(struct context*, struct context*);
@@ -181,6 +187,9 @@ uint64          walkaddr(pagetable_t, uint64);
 int             copyout(pagetable_t, uint64, char *, uint64);
 int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
+int             do_mmap_page(struct vma*, uint64, pte_t*);
+uint64          mmap(struct proc*, uint64, uint64, int, int, struct file*, uint64);
+uint64          munmap(struct proc*, uint64, uint64);
 #if defined(LAB_PGTBL) || defined(SOL_MMAP)
 void            vmprint(pagetable_t);
 #endif

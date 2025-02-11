@@ -50,7 +50,8 @@ usertrap(void)
   // save user program counter.
   p->trapframe->epc = r_sepc();
   
-  if(r_scause() == 8){
+  uint64 scauce = r_scause();
+  if(scauce == 8){
     // system call
 
     if(killed(p))
@@ -67,7 +68,43 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if(scauce == 12 || scauce == 13 || scauce == 15){
+    // instruction/load/store/AMO page fault
+    uint64 va, pa;
+    struct vma *vma = 0, *cur;
+
+    va = r_stval();
+    if(va >= MAXVA){
+      goto KILL;
+    }
+    va = PGROUNDDOWN(va);
+    pte_t *pte = walk(p->pagetable, va, 0);
+    if(!pte){
+      goto KILL;
+    }
+
+    pa = PTE2PA(*pte);
+    if(pa != 0){
+      goto KILL;
+    }
+
+    for(cur = p->vma; cur; cur = cur->next){
+      if(va >= cur->start && va < cur->end){
+        vma = cur;
+        break;
+      }
+    }
+    if(!vma){
+      goto KILL;
+    }
+
+    int rc = do_mmap_page(vma, va, pte);
+    if(rc != 0){
+      printf("do_mmap_page failed: %d\n", rc);
+      goto KILL;
+    }
   } else {
+KILL:
     printf("usertrap(): unexpected scause 0x%lx pid=%d\n", r_scause(), p->pid);
     printf("            sepc=0x%lx stval=0x%lx\n", r_sepc(), r_stval());
     setkilled(p);

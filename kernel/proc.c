@@ -12,6 +12,12 @@ struct proc proc[NPROC];
 
 struct proc *initproc;
 
+struct {
+  struct vma _vma[NVMA];
+  struct vma *free_vma_list;
+  struct spinlock lock;
+} vma;
+
 int nextpid = 1;
 struct spinlock pid_lock;
 
@@ -55,6 +61,13 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+  }
+
+  initlock(&vma.lock, "vma");
+  vma.free_vma_list = 0;
+  for(int i = 0; i < NVMA; i++){
+    vma._vma[i].next = vma.free_vma_list;
+    vma.free_vma_list = &vma._vma[i];
   }
 }
 
@@ -101,6 +114,28 @@ allocpid()
 
   return pid;
 }
+
+struct vma *
+allocvma(void){
+  struct vma *v;
+  
+  acquire(&vma.lock);
+  v = vma.free_vma_list;
+  if(v){
+    vma.free_vma_list = v->next;
+  }
+  release(&vma.lock);
+  return v;
+}
+
+void
+freevma(struct vma *v){
+  acquire(&vma.lock);
+  v->next = vma.free_vma_list;
+  vma.free_vma_list = v;
+  release(&vma.lock);
+}
+
 
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
@@ -169,6 +204,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->vma = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -281,6 +317,7 @@ fork(void)
 {
   int i, pid;
   struct proc *np;
+  struct vma *cur, *pre, *next; 
   struct proc *p = myproc();
 
   // Allocate process.
@@ -295,6 +332,24 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  // Map the same regions as the parent.
+  for(cur = p->vma; cur; cur = cur->next) {
+    if(mmap(np, cur->start, cur->end - cur->start, 
+      cur->prot, cur->flags, cur->f, cur->offset) < 0){
+      munmap(np, p->vma->start, MAXVMEMMAP);
+      freeproc(np);
+      release(&np->lock);
+      return -1;
+    }
+  }
+  // Reverse new process's vma list.
+  for(pre = 0, cur = np->vma; cur; cur = next){
+    next = cur->next;
+    cur->next = pre;
+    pre = cur;
+  }
+  np->vma = pre;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -350,6 +405,10 @@ exit(int status)
 
   if(p == initproc)
     panic("init exiting");
+
+  if(p->vma){
+    munmap(p, p->vma->start, MAXVMEMMAP);
+  }
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){

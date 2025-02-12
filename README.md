@@ -1,6 +1,14 @@
-# mit-6.181
-2024-fall   
+# mit-6.181-xv6-labs-2024
+课程主页:https://pdos.csail.mit.edu/6.828/2024/schedule.html
+
+大致用时:2025.1.10~2025.2.12
+
+report分支保存了每个lab的简单笔记。
+
+具体实验代码在各个lab对应的分支。
 
 # 参考链接
-https://lrl52.top/1219/6-1810-lab4-traps-traps/
-https://www.chens.life/posts/mit-xv6-lab4/
+https://lrl52.top/1213/6-1810-lab1-util-unix-utilities/
+
+
+https://www.chens.life/categories/xv6-labs-notes/

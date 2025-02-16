@@ -12,3 +12,10 @@ https://lrl52.top/1213/6-1810-lab1-util-unix-utilities/
 
 
 https://www.chens.life/categories/xv6-labs-notes/
+
+# 总结
+1. gdb非常好用（不是printf不好用，只是gdb效率更高）。
+
+2. 善用工具能极大提高效率,[BITO](https://bito.ai/)帮我省去了很多查资料的功夫。
+
+3. 有时候读代码比看手册更有用。

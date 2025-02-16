@@ -1,4 +1,9 @@
-# 印象最深的一个bug
+# mmap
+最后一个lab，综合了前面的很多内容，代码量很大。
+
+[详细代码](https://github.com/lxx3f/solutions-of-mit-6.181-xv6-labs-2024/commit/a9271ac80ec0b00c096b21144a8ab18a0d3ab5e8)
+
+## 印象最深的一个bug
 在这个测试点卡了很久:
 ```c
 if(read(fd, buf, PGSIZE) != PGSIZE/2)
@@ -16,3 +21,4 @@ if(read(fd, buf, PGSIZE) != PGSIZE/2)
 +     n = len;
   }
 ```
+

@@ -8,7 +8,7 @@ report分支保存了每个lab的简单笔记。
 具体实验代码在各个lab对应的分支。
 
 # 参考链接
-https://lrl52.top/1213/6-1810-lab1-util-unix-utilities/
+https://lrl52.top/1213/6-1810-lab1-util-unix-utilities/ (非常详细,非常推荐)
 
 
 https://www.chens.life/categories/xv6-labs-notes/

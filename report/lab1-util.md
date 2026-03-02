@@ -1,4 +1,5 @@
 # sleep
+实现一个用户级的sleep（用系统调用提供的sleep），其实就是一个简单的“helloworld”。
 ```c
 #include "kernel/types.h"
 #include "kernel/stat.h"
@@ -21,6 +22,7 @@ int main(int argc, char *argv[])
 从运行结果来看,sleep 10大约停顿了2秒,即qemu模拟的一个时钟周期大约是0.2秒。
 
 # pingpong
+使用管道在父子进程之间发送数据，模拟“打乒乓球两边一来一回”的场景。
 ```c
 #include "kernel/types.h"
 #include "kernel/stat.h"
@@ -88,10 +90,14 @@ int main(int argc, char *argv[])
 
 ```
 
-思考:为什么要close父进程和子进程中的pipe端口,一方面是符合pipe单向通信的原则,更重要的是,我们把pipe看作一个特殊的文件,关闭写端口相当于给文件末尾提供了结束符号。
+思考:为什么要close父进程和子进程中的pipe端口,一方面是符合pipe单向通信的原则,更重要的是我们把pipe看作一个特殊的文件,子进程复制了父进程的文件描述符，不关闭就会导致OS内核对pipe文件的引用计数不会归零,可能导致死锁。
 
 # primes
-质数筛
+并发质数筛
+
+第一个进程做一个初始化：把数放进管道，然后创建子进程。
+每个进程先从管道读第一个数（这个数就是质数），输出；
+然后创建新管道和子进程，把不能被当前质数整除的数写入新管道，传给子进程；
 
 难点是及时关闭端口回收管道。
 ```c
@@ -206,6 +212,7 @@ int main(int argc, char *argv[])
 ```
 
 # find
+查找目录树中所有具有特定名称的文件。
 
 采用深度优先搜索策略
 
@@ -299,6 +306,7 @@ int main(int argc, char *argv[])
 ```
 
 # xargs
+编写一个简单的 UNIX xargs 程序：它的参数描述要运行的命令，从标准输入读取行，并对每一行执行该命令，并将该行添加到命令的参数中。
 
 ```c
 #include "kernel/types.h"

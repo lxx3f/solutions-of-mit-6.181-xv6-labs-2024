@@ -6,9 +6,11 @@ gdb-multiarch -x .gdbinit
 ```
 
 # trace
+添加一个 syscall trace，用于跟踪和调试系统调用。
 
 
 # attack
+利用设计的漏洞找到上个进程的数据。
 [参考链接](https://blog.csdn.net/weixin_42543071/article/details/143351746)
 ```c
 #include "kernel/types.h"
